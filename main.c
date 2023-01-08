@@ -3,9 +3,32 @@
 #include <string.h>
 #include <unistd.h>
 
-#define DIR_CHANGE  1   // To be XORed if direction is changed
-#define DIR_LR      0   // Left-to-Right
-#define DIR_RL      1   // Right-to-Left
+#define DIR_CHANGE      1   // To be XORed if direction is changed
+#define DIR_LR          0   // Left-to-Right
+#define DIR_RL          1   // Right-to-Left
+
+#define SPEED_STEP      2500
+#define MAX_SPEED       SPEED_STEP
+#define MIN_SPEED       SPEED_STEP * 20
+#define DEFAULT_SPEED   SPEED_STEP * 10
+
+void print_help()
+{
+    mvprintw(0,0, "Controls:");
+    mvprintw(1,0, "Arrow Up     increase snake speed");
+    mvprintw(2,0, "Arrow Down   decrease snake speed");
+    mvprintw(3,0, "h            hide / show this text");
+}
+
+void clear_help()
+{
+    int const help_rows = 4;
+    for (int i = 0; i < help_rows; i++) {
+        for (int j = 0; j < COLS; j++) {
+            mvdelch(i,0);
+        }
+    }
+}
 
 int main(int argc, char* const argv[])
 {
@@ -30,9 +53,10 @@ int main(int argc, char* const argv[])
     // Start color if supported
     start_color();
 
-    // Print quit hint
+    // Print quit hint and help
     char const quit_hint[] = "Press any key to quit";
     mvprintw(LINES - 1, (COLS - strlen(quit_hint)) / 2, quit_hint);
+    print_help();
     refresh();
 
     // Set non-blocking input for infinite loop
@@ -44,6 +68,12 @@ int main(int argc, char* const argv[])
     int snake_head = 0;
     int direction = DIR_LR;
 
+    // Controls
+    int keypress;
+    int help_flag = ~0;
+    int exit_flag = 0;
+    useconds_t snake_speed = DEFAULT_SPEED;
+
     // Red intensities based on snake length
     for (int i = 1; i <= snake_len; i++) {
         int const color_idx = i + 10; // To not overwrite defaults
@@ -53,13 +83,45 @@ int main(int argc, char* const argv[])
     }
 
     // Animate
-    while(getch() == ERR) {
-        // Clear row // TODO use either delch or addch
-        //move(snake_y, 0);
+    while(!exit_flag) {
+
+        // Handle controls
+        keypress = getch();
+        switch (keypress)
+        {
+        case KEY_UP:
+            snake_speed -= SPEED_STEP;
+            if (snake_speed < MAX_SPEED) {
+                snake_speed = MAX_SPEED;
+            }
+            break;
+        case KEY_DOWN:
+            snake_speed += SPEED_STEP;
+            if (snake_speed > MIN_SPEED) {
+                snake_speed = MIN_SPEED;
+            }
+            break;
+        case 'h':
+            help_flag = ~help_flag;
+            if (help_flag) {
+                print_help();
+            } else {
+                clear_help();
+            }
+            break;
+        case ERR:
+            // No key pressed, continue as usual
+            break;
+        default:
+            // Any other key pressed, exit
+            exit_flag = ~exit_flag;
+            break;
+        }
+
+        // Clear snake row
         attron(COLOR_PAIR(1));
         for (int i = 0; i < COLS; i++) {
             mvaddch(snake_y, i, ACS_BLOCK);
-            //delch();
         }
         attroff(COLOR_PAIR(1));
         refresh();
@@ -88,7 +150,7 @@ int main(int argc, char* const argv[])
             direction ^= DIR_CHANGE;
         }
 
-        usleep(25000);
+        usleep(snake_speed);
     }
 
     endwin();
