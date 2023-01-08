@@ -3,26 +3,23 @@
 #include <string.h>
 #include <unistd.h>
 
-#define DIR_CHANGE      1   // To be XORed if direction is changed
-#define DIR_LR          0   // Left-to-Right
-#define DIR_RL          1   // Right-to-Left
+#include "animation.h"
 
-#define SPEED_STEP      2500
-#define MAX_SPEED       SPEED_STEP
-#define MIN_SPEED       SPEED_STEP * 20
-#define DEFAULT_SPEED   SPEED_STEP * 10
-
+// TODO combine the help print / clear functions into one,
+//      and make `help_rows` automatically detect the number of rows
 void print_help()
 {
     mvprintw(0,0, "Controls:");
     mvprintw(1,0, "Arrow Up     increase snake speed");
     mvprintw(2,0, "Arrow Down   decrease snake speed");
-    mvprintw(3,0, "h            hide / show this text");
+    mvprintw(3,0, "n            cycle animation modes");
+    mvprintw(4,0, "h            hide / show this text");
+    refresh();
 }
 
 void clear_help()
 {
-    int const help_rows = 4;
+    int const help_rows = 5;
     for (int i = 0; i < help_rows; i++) {
         for (int j = 0; j < COLS; j++) {
             mvdelch(i,0);
@@ -63,27 +60,32 @@ int main(int argc, char* const argv[])
     timeout(0);
 
     // Animation initialization
-    int const snake_y = LINES / 2;
-    int const snake_len = COLS / 4;
-    int snake_head = 0;
-    int direction = DIR_LR;
+    animation_settings_t s = {
+        .snake_y = LINES / 2,
+        .snake_len = COLS / 4,
+        .snake_head = 1,
+        .direction = DIR_LR,
+        .direction_change_flag = 0
+    };
+    void (*animation_func)(animation_settings_t const *) = &mode_basic;
 
     // Controls
     int keypress;
     int help_flag = ~0;
     int exit_flag = 0;
+    int mode = 0;
     useconds_t snake_speed = DEFAULT_SPEED;
 
     // Red intensities based on snake length
-    for (int i = 1; i <= snake_len; i++) {
+    for (int i = 1; i <= s.snake_len; i++) {
         int const color_idx = i + 10; // To not overwrite defaults
 
-        init_color(color_idx, (1000 / snake_len) * i, 0, 0);
+        init_color(color_idx, (1000 / s.snake_len) * i, 0, 0);
         init_pair(i, color_idx, COLOR_BLACK);
     }
 
     // Animate
-    while(!exit_flag) {
+    while (!exit_flag) {
 
         // Handle controls
         keypress = getch();
@@ -100,6 +102,12 @@ int main(int argc, char* const argv[])
             if (snake_speed > MIN_SPEED) {
                 snake_speed = MIN_SPEED;
             }
+            break;
+        case 'n':
+            // Select the animation function on mode change
+            mode = (mode + 1) % MODES_N;
+            if (mode == MODE_BASIC) { animation_func = &mode_basic; }
+            else if (mode == MODE_SMOOTH) { animation_func = &mode_smooth; }
             break;
         case 'h':
             help_flag = ~help_flag;
@@ -121,33 +129,24 @@ int main(int argc, char* const argv[])
         // Clear snake row
         attron(COLOR_PAIR(1));
         for (int i = 0; i < COLS; i++) {
-            mvaddch(snake_y, i, ACS_BLOCK);
+            mvaddch(s.snake_y, i, ACS_BLOCK);
         }
         attroff(COLOR_PAIR(1));
         refresh();
 
-        if (direction == DIR_LR) {
-            for (int i = 0; i < snake_len; i++) {
-                attron(COLOR_PAIR(i + 1));
-                mvaddch(snake_y, (snake_head - (snake_len - 1)) + i, ACS_BLOCK);
-                attroff(COLOR_PAIR(i + 1));
-            }
-        } else { /* direction == DIR_RL */
-            for (int i = 0; i < snake_len; i++) {
-                attron(COLOR_PAIR(i + 1));
-                mvaddch(
-                    snake_y,
-                    COLS - 1 - ((snake_head - (snake_len - 1)) + i),
-                    ACS_BLOCK
-                );
-                attroff(COLOR_PAIR(i + 1));
-            }
-        }
-        refresh();
+        // Animate based on selected mode
+        (*animation_func)(&s);
 
-        snake_head = (snake_head + 1) % (COLS);
-        if (snake_head == 0) {
-            direction ^= DIR_CHANGE;
+        // Update animation variables
+        s.snake_head = (s.snake_head + 1) % (COLS);
+        if (s.snake_head == 0) {
+            s.direction ^= DIR_CHANGE;
+            s.direction_change_flag = ~s.direction_change_flag;
+        }
+
+        if (s.direction_change_flag && s.snake_head > s.snake_len - 1) {
+            // Direction change in smooth mode complete (snake passed its tail)
+            s.direction_change_flag = ~s.direction_change_flag;
         }
 
         usleep(snake_speed);
