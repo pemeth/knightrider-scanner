@@ -5,7 +5,7 @@ SRC_DIR := ./
 BUILD_DIR := ./bin
 SRCS := $(wildcard ./*.c)
 HDRS := $(wildcard ./*.h)
-OBJECTS := $(BUILD_DIR)/$(notdir $(SRCS:.c=.o))
+OBJECTS := $(patsubst %, $(BUILD_DIR)/%, $(notdir $(SRCS:.c=.o)))
 LIBS := -lncurses
 
 .PHONY: main-build pre-build build run clean pack
@@ -22,7 +22,7 @@ main-build: $(OBJECTS)
 	$(CC) $(FLAGS) -o $(NAME) $^ $(LIBS)
 
 $(BUILD_DIR)/%.o: %.c
-	$(CC) $(FLAGS) -o $@ -c $^
+	$(CC) $(FLAGS) -o $@ -c $^ $(LIBS)
 
 clean:
 	rm -f $(NAME)
