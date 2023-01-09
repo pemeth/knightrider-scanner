@@ -65,15 +65,17 @@ int main(int argc, char* const argv[])
         .snake_len = COLS / 4,
         .snake_head = 1,
         .direction = DIR_LR,
-        .direction_change_flag = 0
+        .direction_change_flag = 0,
+        .max_y = LINES - 1,
+        .max_x = COLS - 1,
     };
-    void (*animation_func)(animation_settings_t const *) = &mode_basic;
+    void (*animation_func)(animation_settings_t const *) = &mode_smooth;
 
     // Controls
     int keypress;
-    int help_flag = ~0;
-    int exit_flag = 0;
-    int mode = 0;
+    int help_flag = TRUE;
+    int exit_flag = FALSE;
+    int mode = MODE_SMOOTH;
     useconds_t snake_speed = DEFAULT_SPEED;
 
     // Red intensities based on snake length
@@ -110,7 +112,7 @@ int main(int argc, char* const argv[])
             else if (mode == MODE_SMOOTH) { animation_func = &mode_smooth; }
             break;
         case 'h':
-            help_flag = ~help_flag;
+            help_flag ^= TRUE;
             if (help_flag) {
                 print_help();
             } else {
@@ -122,7 +124,7 @@ int main(int argc, char* const argv[])
             break;
         default:
             // Any other key pressed, exit
-            exit_flag = ~exit_flag;
+            exit_flag ^= TRUE;
             break;
         }
 

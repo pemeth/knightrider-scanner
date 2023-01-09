@@ -21,6 +21,8 @@ typedef struct animation_settings
     int snake_head;
     int direction;
     int direction_change_flag;
+    int max_y;
+    int max_x;
 } animation_settings_t;
 
 /**

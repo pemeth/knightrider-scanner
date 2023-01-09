@@ -19,7 +19,7 @@ void mode_basic(animation_settings_t const *s)
             attron(COLOR_PAIR(i + 1));
             mvaddch(
                 s->snake_y,
-                (COLS - 1) - ((s->snake_head - (s->snake_len - 1)) + i),
+                s->max_x - ((s->snake_head - (s->snake_len - 1)) + i),
                 ACS_BLOCK
             );
             attroff(COLOR_PAIR(i + 1));
@@ -47,7 +47,7 @@ void mode_smooth(animation_settings_t const *s)
                 attron(COLOR_PAIR(s->snake_len - i));
                 mvaddch(
                     s->snake_y,
-                    (COLS - 1) - (-s->snake_head + i),
+                    s->max_x - (-s->snake_head + i),
                     ACS_BLOCK
                 );
                 attroff(COLOR_PAIR(s->snake_len - i));
