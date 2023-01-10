@@ -10,17 +10,20 @@
 #define MIN_SPEED       SPEED_STEP * 40
 #define DEFAULT_SPEED   SPEED_STEP * 10
 
-#define MODES_N         2
+#define MODES_N         3
 #define MODE_BASIC      0
 #define MODE_SMOOTH     1
+#define MODE_SPLIT      2
 
 typedef struct animation_settings
 {
-    int const snake_y;
-    int const snake_len;
+    int snake_y;
+    int snake_len;
     int snake_head;
     int direction;
     int direction_change_flag;
+    int min_y;
+    int min_x;
     int max_y;
     int max_x;
 } animation_settings_t;
@@ -39,5 +42,12 @@ void mode_basic(animation_settings_t const *s);
  * @param s pointer to struct containing info about current animation frame.
  */
 void mode_smooth(animation_settings_t const *s);
+
+/**
+ * @brief Update the animation settings for the next frame.
+ *
+ * @param s pointer to the settings to be updated.
+ */
+void update(animation_settings_t *s);
 
 #endif /* ANIMATION_H */

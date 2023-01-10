@@ -65,10 +65,24 @@ int main(int argc, char* const argv[])
         .snake_len = COLS / 4,
         .snake_head = 1,
         .direction = DIR_LR,
-        .direction_change_flag = 0,
+        .direction_change_flag = 0, // TODO unify with other true/false values
+        .min_y = 0,
+        .min_x = 0,
         .max_y = LINES - 1,
         .max_x = COLS - 1,
     };
+    animation_settings_t s_split_left = s;
+    animation_settings_t s_split_right = s;
+
+    // Bounds in split mode
+    int const cols_half = COLS / 2;
+    s_split_left.max_x = cols_half - 1;
+    s_split_right.min_x = COLS % 2 == 0 ? cols_half : cols_half + 1;
+
+    // Starting settings in split mode
+    s_split_right.snake_head = s_split_right.min_x + 1;
+    s_split_right.direction ^= DIR_CHANGE;
+
     void (*animation_func)(animation_settings_t const *) = &mode_smooth;
 
     // Controls
@@ -106,10 +120,11 @@ int main(int argc, char* const argv[])
             }
             break;
         case 'n':
-            // Select the animation function on mode change
+            // Change mode and select the animation function on mode change
             mode = (mode + 1) % MODES_N;
             if (mode == MODE_BASIC) { animation_func = &mode_basic; }
             else if (mode == MODE_SMOOTH) { animation_func = &mode_smooth; }
+            else if (mode == MODE_SPLIT) { animation_func = &mode_smooth; }
             break;
         case 'h':
             help_flag ^= TRUE;
@@ -136,20 +151,17 @@ int main(int argc, char* const argv[])
         attroff(COLOR_PAIR(1));
         refresh();
 
-        // Animate based on selected mode
-        (*animation_func)(&s);
-
-        // Update animation variables
-        s.snake_head = (s.snake_head + 1) % (COLS);
-        if (s.snake_head == 0) {
-            s.direction ^= DIR_CHANGE;
-            s.direction_change_flag = ~s.direction_change_flag;
+        // Render frame and update animation variables based on selected mode
+        if (mode == MODE_BASIC || mode == MODE_SMOOTH) {
+            (*animation_func)(&s);
+            update(&s);
+        } else if (mode == MODE_SPLIT) {
+            (*animation_func)(&s_split_left);
+            (*animation_func)(&s_split_right);
+            update(&s_split_left);
+            update(&s_split_right);
         }
-
-        if (s.direction_change_flag && s.snake_head > s.snake_len - 1) {
-            // Direction change in smooth mode complete (snake passed its tail)
-            s.direction_change_flag = ~s.direction_change_flag;
-        }
+        refresh();
 
         usleep(snake_speed);
     }
