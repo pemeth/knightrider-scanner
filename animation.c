@@ -77,12 +77,12 @@ void update(animation_settings_t *s)
     snake_head_norm = (snake_head_norm + 1) % (max_norm + 1);
     if (snake_head_norm == 0) {
         s->direction ^= DIR_CHANGE;
-        s->direction_change_flag = ~s->direction_change_flag;
+        s->direction_change_flag ^= TRUE;
     }
 
     if (s->direction_change_flag && snake_head_norm > s->snake_len - 1) {
         // Direction change in smooth mode complete (snake passed its tail)
-        s->direction_change_flag = ~s->direction_change_flag;
+        s->direction_change_flag ^= TRUE;
     }
 
     s->snake_head = snake_head_norm + s->min_x;

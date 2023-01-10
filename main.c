@@ -77,7 +77,7 @@ int main(int argc, char* const argv[])
         .snake_len = COLS / 4,
         .snake_head = 1,
         .direction = DIR_LR,
-        .direction_change_flag = 0, // TODO unify with other true/false values
+        .direction_change_flag = FALSE,
         .min_y = 0,
         .min_x = 0,
         .max_y = LINES - 1,
