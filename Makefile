@@ -22,7 +22,7 @@ main-build: $(OBJECTS)
 	$(CC) $(FLAGS) -o $(NAME) $^ $(LIBS)
 
 $(BUILD_DIR)/%.o: %.c
-	$(CC) $(FLAGS) -o $@ -c $^ $(LIBS)
+	$(CC) $(FLAGS) -o $@ -c $^
 
 clean:
 	rm -f $(NAME)
