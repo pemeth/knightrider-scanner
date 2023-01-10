@@ -10,10 +10,11 @@
 #define MIN_SPEED       SPEED_STEP * 40
 #define DEFAULT_SPEED   SPEED_STEP * 10
 
-#define MODES_N         3
+#define MODES_N         4
 #define MODE_BASIC      0
 #define MODE_SMOOTH     1
 #define MODE_SPLIT      2
+#define MODE_SPLIT_SYM  3
 
 typedef struct animation_settings
 {

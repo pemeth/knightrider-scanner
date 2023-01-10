@@ -136,7 +136,14 @@ int main(int argc, char* const argv[])
             mode = (mode + 1) % MODES_N;
             if (mode == MODE_BASIC) { animation_func = &mode_basic; }
             else if (mode == MODE_SMOOTH) { animation_func = &mode_smooth; }
-            else if (mode == MODE_SPLIT) { animation_func = &mode_smooth; }
+            else if (mode == MODE_SPLIT) {
+                animation_func = &mode_smooth;
+                s_split_right.direction = s_split_left.direction ^ DIR_CHANGE;
+            }
+            else if (mode == MODE_SPLIT_SYM) {
+                animation_func = &mode_smooth;
+                s_split_right.direction = s_split_left.direction;
+            }
             break;
         case 'h':
             help_flag ^= TRUE;
@@ -158,7 +165,7 @@ int main(int argc, char* const argv[])
         if (mode == MODE_BASIC || mode == MODE_SMOOTH) {
             (*animation_func)(&s);
             update(&s);
-        } else if (mode == MODE_SPLIT) {
+        } else if (mode == MODE_SPLIT || mode == MODE_SPLIT_SYM) {
             (*animation_func)(&s_split_left);
             (*animation_func)(&s_split_right);
             update(&s_split_left);
