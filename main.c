@@ -5,7 +5,13 @@
 
 #include "animation.h"
 
-
+/**
+ * @brief Clear entire lines between `from` and `to`, both inclusive.
+ * `refresh()` must be called after to render changes.
+ *
+ * @param from first line to be cleared.
+ * @param to last line to be cleared.
+ */
 void clear_lines(int from, int to)
 {
     for (int i = from; i <= to; i++) {
@@ -50,8 +56,13 @@ int main(int argc, char* const argv[])
 
     // Check for color support
     if (has_colors() == FALSE) {
-        // TODO figure out what to do in this case
-        printw("Colors are not supported in this terminal\n");
+        char const no_colors[] = "Colors are not supported in this terminal";
+
+        mvprintw(
+            LINES / 2,
+            (COLS - strlen(no_colors)) / 2,
+            no_colors
+        );
         refresh();
 
         getch();

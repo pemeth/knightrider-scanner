@@ -24,7 +24,6 @@ void mode_basic(animation_settings_t const *s)
         );
         attroff(COLOR_PAIR(i + 1));
     }
-    refresh();
 }
 
 
@@ -62,7 +61,6 @@ void mode_smooth(animation_settings_t const *s)
             attroff(COLOR_PAIR(s->snake_len - i));
         }
     }
-    refresh();
 
     // The above code handles just the edges, rest is same as basic
     mode_basic(s);
