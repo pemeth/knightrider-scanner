@@ -5,27 +5,39 @@
 
 #include "animation.h"
 
-// TODO combine the help print / clear functions into one,
-//      and make `help_rows` automatically detect the number of rows
-void print_help()
+
+void clear_lines(int from, int to)
 {
-    mvprintw(0,0, "Controls:");
-    mvprintw(1,0, "Arrow Up     increase snake speed");
-    mvprintw(2,0, "Arrow Down   decrease snake speed");
-    mvprintw(3,0, "n            cycle animation modes");
-    mvprintw(4,0, "h            hide / show this text");
+    for (int i = from; i <= to; i++) {
+        move(i, 0);
+        clrtoeol();
+    }
+}
+
+
+void help(int toggle)
+{
+    char* const msgs[] = {
+        "Controls:",
+        "Arrow Up     increase snake speed",
+        "Arrow Down   decrease snake speed",
+        "n            cycle animation modes",
+        "h            hide / show this text",
+    };
+
+    int const n_lines = sizeof(msgs) / sizeof(msgs[0]);
+
+    if (toggle == TRUE) {
+        for (int i = 0; i < n_lines; i++) {
+            mvprintw(i, 0, msgs[i]);
+        }
+    } else {
+        clear_lines(0, n_lines - 1);
+    }
+
     refresh();
 }
 
-void clear_help()
-{
-    int const help_rows = 5;
-    for (int i = 0; i < help_rows; i++) {
-        for (int j = 0; j < COLS; j++) {
-            mvdelch(i,0);
-        }
-    }
-}
 
 int main(int argc, char* const argv[])
 {
@@ -53,7 +65,7 @@ int main(int argc, char* const argv[])
     // Print quit hint and help
     char const quit_hint[] = "Press any key to quit";
     mvprintw(LINES - 1, (COLS - strlen(quit_hint)) / 2, quit_hint);
-    print_help();
+    help(TRUE);
     refresh();
 
     // Set non-blocking input for infinite loop
@@ -128,11 +140,7 @@ int main(int argc, char* const argv[])
             break;
         case 'h':
             help_flag ^= TRUE;
-            if (help_flag) {
-                print_help();
-            } else {
-                clear_help();
-            }
+            help(help_flag);
             break;
         case ERR:
             // No key pressed, continue as usual
@@ -144,12 +152,7 @@ int main(int argc, char* const argv[])
         }
 
         // Clear snake row
-        attron(COLOR_PAIR(1));
-        for (int i = 0; i < COLS; i++) {
-            mvaddch(s.snake_y, i, ACS_BLOCK);
-        }
-        attroff(COLOR_PAIR(1));
-        refresh();
+        clear_lines(s.snake_y, s.snake_y);
 
         // Render frame and update animation variables based on selected mode
         if (mode == MODE_BASIC || mode == MODE_SMOOTH) {
